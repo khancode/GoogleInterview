@@ -57,13 +57,20 @@ public class BinarySearchTree<T extends Comparable<T>>
 	@Override
 	public String toString()
 	{
-		return bfsToString() + '\n' + dfsToString() + '\n' + preOrderToString();
+		return bfsToString() + '\n' + 
+			   dfsToString() + '\n' + 
+			   preOrderToString() + '\n' +
+			   inOrderToString() + '\n' +
+			   postOrderToString();
 	}
 	
 	/* Converts traversal result to String */
 	private String traversalToString(String type, LinkedList<Node<T>> result)
 	{
-		int curLevel = 0;
+		if (result.isEmpty())
+			return "Empty tree";
+		
+		int curLevel = result.peek().getLevel();
 		StringBuilder output = new StringBuilder(type + " toString, () specifies parent:\nLevel " + curLevel + ':');
 		
 		while (!result.isEmpty())
@@ -113,14 +120,11 @@ public class BinarySearchTree<T extends Comparable<T>>
 			bfs.add(cur);
 			
 			// Add children
-			if (cur.getData() != null)
-			{
-				if (cur.getLeft() != null)
-					q.add(cur.getLeft());
-				
-				if (cur.getRight() != null)
-					q.add(cur.getRight());
-			}
+			if (cur.getLeft() != null)
+				q.add(cur.getLeft());
+			
+			if (cur.getRight() != null)
+				q.add(cur.getRight());
 		}
 		
 		// Convert result to String
@@ -155,14 +159,11 @@ public class BinarySearchTree<T extends Comparable<T>>
 			dfs.add(cur);
 			
 			// Add children
-			if (cur.getData() != null)
-			{
-				if (cur.getLeft() != null)
-					stack.push(cur.getLeft());
-				
-				if (cur.getRight() != null)
-					stack.push(cur.getRight());
-			}
+			if (cur.getLeft() != null)
+				stack.push(cur.getLeft());
+			
+			if (cur.getRight() != null)
+				stack.push(cur.getRight());
 		}
 		
 		// Convert result to String
@@ -173,9 +174,9 @@ public class BinarySearchTree<T extends Comparable<T>>
 	{
 		/*
 		 *  Pre-Order (VLR)
-			V. Display the data part of root element (or current element)
-			L. Traverse the left subtree by recursively calling the pre-order function.
-			R. Traverse the right subtree by recursively calling the pre-order function.
+			V (Visit): Display the data part of root element (or current element)
+			L (Left): Traverse the left subtree by recursively calling the pre-order function.
+			R (Right): Traverse the right subtree by recursively calling the pre-order function.
 		 */
 		
 		String recursive = traversalToString("Pre-Order Recursive", preOrderRecursive(this.head, new LinkedList<Node<T>>()));
@@ -238,6 +239,162 @@ public class BinarySearchTree<T extends Comparable<T>>
 		
 		return traversalToString("Pre-Order Iterative", result);
 	}
+	
+	public String inOrderToString()
+	{
+		/*
+		 *  In-Order (LVR)
+			L (Left): Traverse the left subtree by recursively calling the in-order function.
+			V (Visit): Display the data part of root element (or current element)
+			R (Right): Traverse the right subtree by recursively calling the in-order function.
+		 */
+		
+		String recursive = traversalToString("In-Order Recursive", inOrderRecursive(this.head, new LinkedList<Node<T>>()));
+		String iterative = inOrderIterative();
+
+		return recursive + '\n' + iterative;
+	}
+	
+	private LinkedList<Node<T>> inOrderRecursive(Node<T> cur, LinkedList<Node<T>> result)
+	{
+		if (cur == null)
+			return null;
+		
+		// L
+		inOrderRecursive(cur.getLeft(), result);
+		
+		// V
+		result.add(cur);
+		
+		// R
+		inOrderRecursive(cur.getRight(), result);
+		
+		return result;
+	}
+	
+	private String inOrderIterative()
+	{
+		/* Wikipedia: http://en.wikipedia.org/wiki/Tree_traversal
+		 * iterativeInorder(node)
+			  parentStack = empty stack
+			  while (not parentStack.isEmpty() or node != null)
+			    if (node != null)
+			      parentStack.push(node)
+			      node = node.left
+			    else
+			      node = parentStack.pop()
+			      visit(node)
+			      node = node.right
+		 */
+		
+		LinkedList<Node<T>> result = new LinkedList<Node<T>>();
+		
+		Stack<Node<T>> parentStack = new Stack<Node<T>>();
+		Node<T> cur = this.head;
+		
+		while (!parentStack.isEmpty() || cur != null)
+		{
+			if (cur != null)
+			{
+				parentStack.push(cur);
+				cur = cur.getLeft();
+			}
+			else
+			{
+				cur = parentStack.pop();
+				// do what you need to do
+				result.add(cur);
+				cur = cur.getRight();
+			}
+		}
+		
+		return traversalToString("In-Order Iterative", result);
+	}
+	
+	public String postOrderToString()
+	{
+		/*
+		 *  In-Order (LVR)
+			L (Left): Traverse the left subtree by recursively calling the in-order function.
+			V (Visit): Display the data part of root element (or current element)
+			R (Right): Traverse the right subtree by recursively calling the in-order function.
+		 */
+		
+		String recursive = traversalToString("Post-Order Recursive", postOrderRecursive(this.head, new LinkedList<Node<T>>()));
+//		String iterative = postOrderIterative();
+
+		return recursive; //+ '\n' + iterative;
+	}
+	
+	private LinkedList<Node<T>> postOrderRecursive(Node<T> cur, LinkedList<Node<T>> result)
+	{
+		if (cur == null)
+			return null;
+		
+		// L
+		inOrderRecursive(cur.getLeft(), result);
+		
+		// R
+		inOrderRecursive(cur.getRight(), result);
+		
+		// V
+		result.add(cur);
+		
+		return result;
+	}
+	
+//	private String postOrderIterative()
+//	{
+//		/* Wikipedia: http://en.wikipedia.org/wiki/Tree_traversal
+//		 * iterativePostorder(node)
+//			  parentStack = empty stack  
+//			  lastnodevisited = null 
+//			  while (not parentStack.isEmpty() or node != null)
+//			    if (node != null)
+//			      parentStack.push(node)
+//			      node = node.left
+//			    else
+//			      peeknode = parentStack.peek()
+//			      if (peeknode.right != null and lastnodevisited != peeknode.right) 
+//			        //if right child exists AND traversing node from left child, move right
+//			        node = peeknode.right
+//			      else
+//			        visit(peeknode)
+//			        lastnodevisited = parentStack.pop() 
+//		 */
+//		
+//		LinkedList<Node<T>> result = new LinkedList<Node<T>>();
+//		
+//		Stack<Node<T>> parentStack = new Stack<Node<T>>();
+//		Node<T> cur = this.head;
+//		Node<T> lastNodeVisited = null;
+//		
+//		while (!parentStack.isEmpty() || cur != null)
+//		{
+//			if (cur != null)
+//			{
+//				parentStack.push(cur);
+//				cur = cur.getLeft();
+//			}
+//			else
+//			{
+//				Node<T> peekNode = parentStack.peek();
+//				if (peekNode.getRight() != null && lastNodeVisited != peekNode.getRight())
+//				{
+//					//if right child exists AND traversing node from left child, move right
+//			        cur = peekNode.getRight();
+//				}
+//				else
+//				{
+//					// do what you need to do
+//					result.add(cur);
+//					lastNodeVisited = parentStack.pop();
+//				}
+//			}
+//		}
+//		
+//		return traversalToString("Post-Order Iterative", result);
+//	}
 	
 	/* Accessors */
 	public Node<T> getHead() { return this.head; }
